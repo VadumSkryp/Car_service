@@ -1,0 +1,13 @@
+<!-- resources/xml/repair_time_estimate.xml -->
+<repairTimeEstimateList>
+    <repairTimeEstimate>
+        <serviceOrderId>1</serviceOrderId>
+        <estimatedHours>5.0</estimatedHours>
+        <actualHours>6.5</actualHours>
+    </repairTimeEstimate>
+    <repairTimeEstimate>
+        <serviceOrderId>2</serviceOrderId>
+        <estimatedHours>2.5</estimatedHours>
+        <actualHours>2.0</actualHours>
+    </repairTimeEstimate>
+</repairTimeEstimateList>

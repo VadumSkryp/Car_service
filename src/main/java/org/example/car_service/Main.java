@@ -1,14 +1,16 @@
 package org.example.car_service;
 
-import org.example.car_service.conection.ConnectionPool;
+import org.example.car_service.util.ConnectionPool;
 import org.example.car_service.dao.interfaces.*;
 import org.example.car_service.dao.interfaces.impl.*;
+import org.example.car_service.exceptions.DaoException;
 import org.example.car_service.model.CarModel;
 import org.example.car_service.model.Invoice;
 import org.example.car_service.model.Part;
 import org.example.car_service.model.Mechanic;
 import org.example.car_service.model.ServiceTask;
 import org.example.car_service.service.*;
+import org.example.car_service.util.XmlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +50,14 @@ public class Main {
 
             // 2) Get or create a car model (Toyota Corolla)
             int modelId = carModelDao.findAll().stream().findFirst()
-                    .map(CarModel::id)
-                    .orElseGet(() -> carModelDao.create(new CarModel(0, "Toyota", "Corolla")));
+                    .map(CarModel::getId)
+                    .orElseGet(() -> {
+                        try {
+                            return carModelDao.create(new CarModel(0, "Toyota", "Corolla"));
+                        } catch (DaoException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
             // 3) Add a car for the customer
             int carId = carService.addCarForCustomer(custId, modelId, "KY1234AB", 2020);
@@ -57,8 +65,15 @@ public class Main {
 
             // 4) Get or create a mechanic
             int mechId = mechanicService.listMechanics().stream().findFirst()
-                    .map(Mechanic::id)
-                    .orElseGet(() -> mechanicService.addMechanic("Robert Wilson", "15554321111"));
+                    .map(Mechanic::getId)
+                    .orElseGet(() -> {
+                        try {
+                            return mechanicService.addMechanic("Robert Wilson", "15554321111");
+                        } catch (DaoException e) {
+                            logger.error("Error", e);
+                        }
+                        return 0;
+                    });
 
             // 5) Open a new service order for the car
             int orderId = orderService.openOrder(carId, mechId, Date.valueOf(LocalDate.now()));
@@ -66,26 +81,55 @@ public class Main {
 
             // 6) Ensure service tasks and parts exist (create them if missing)
             int oilChangeId = taskDao.findAll().stream()
-                    .filter(t -> t.description().equalsIgnoreCase("Oil change"))
-                    .map(ServiceTask::id).findFirst()
-                    .orElseGet(() -> taskDao.create(new ServiceTask(0, "Oil change", new BigDecimal("100.00"))));
+                    .filter(t -> t.getDescription().equalsIgnoreCase("Oil change"))
+                    .map(ServiceTask::getId).findFirst()
+                    .orElseGet(() -> {
+                        try {
+                            return taskDao.create(new ServiceTask(0, "Oil change", new BigDecimal("100.00")));
+                        } catch (DaoException e) {
+                            logger.error("Error", e);
+
+                        }
+                        return 0;
+                    });
 
             int brakeReplacementId = taskDao.findAll().stream()
-                    .filter(t -> t.description().equalsIgnoreCase("Brake replacement"))
-                    .map(ServiceTask::id).findFirst()
-                    .orElseGet(() -> taskDao.create(new ServiceTask(0, "Brake replacement", new BigDecimal("250.00"))));
+                    .filter(t -> t.getDescription().equalsIgnoreCase("Brake replacement"))
+                    .map(ServiceTask::getId).findFirst()
+                    .orElseGet(() -> {
+                        try {
+                            return taskDao.create(new ServiceTask(0, "Brake replacement", new BigDecimal("250.00")));
+                        } catch (DaoException e) {
+                            logger.error("Error", e);
+                        }
+                        return 0;
+                    });
 
             int oilFilterId = partDao.findAll().stream()
-                    .filter(p -> p.name().equalsIgnoreCase("Oil filter"))
-                    .map(Part::id).findFirst()
-                    .orElseGet(() -> partDao.create(new Part(0, "Oil filter", new BigDecimal("30.00"), 10)));
+                    .filter(p -> p.getName().equalsIgnoreCase("Oil filter"))
+                    .map(Part::getId).findFirst()
+                    .orElseGet(() -> {
+                        try {
+                            return partDao.create(new Part(0, "Oil filter", new BigDecimal("30.00"), 10));
+                        } catch (DaoException e) {
+                            logger.error("Error", e);
+                            return 0;
+                        }
+                    });
 
             int oil5w30Id = partDao.findAll().stream()
-                    .filter(p -> p.name().equalsIgnoreCase("Motor oil 5W-30"))
-                    .map(Part::id).findFirst()
-                    .orElseGet(() -> partDao.create(new Part(0, "Motor oil 5W-30", new BigDecimal("40.00"), 20)));
+                    .filter(p -> p.getName().equalsIgnoreCase("Motor oil 5W-30"))
+                    .map(Part::getId).findFirst()
+                    .orElseGet(() -> {
+                        try {
+                            return partDao.create(new Part(0, "Motor oil 5W-30", new BigDecimal("40.00"), 20));
+                        } catch (DaoException e) {
+                            logger.error("Error", e);
+                            return 0;
+                        }
+                    });
 
-            // 7) Add tasks and parts to the service order
+            // 7) Add tasks and part the service order
             orderService.addTasks(orderId, Map.of(oilChangeId, 1, brakeReplacementId, 1));
             orderService.addParts(orderId, Map.of(oilFilterId, 1, oil5w30Id, 4));
 
@@ -101,7 +145,7 @@ public class Main {
             var invoiceOpt = invoiceService.getByOrder(orderId);
             if (invoiceOpt.isPresent()) {
                 Invoice inv = invoiceOpt.get();
-                invoiceService.payInvoice(inv.id(), Date.valueOf(LocalDate.now()), inv.totalAmount());
+                invoiceService.payInvoice(inv.getId(), Date.valueOf(LocalDate.now()), inv.getTotalAmount());
                 logger.info("Invoice paid: {}", inv);
             } else {
                 logger.warn("Invoice not found for order {}", orderId);
@@ -110,5 +154,22 @@ public class Main {
         } catch (Exception e) {
             logger.error("Unexpected error occurred", e);
         }
+
+
+        XmlService xmlService = new XmlService();
+
+
+        String ownersXmlPath = "src/main/resources/xml/car_owner_details.xml";
+        String estimatesXmlPath = "src/main/resources/xml/repair_time_estimate.xml";
+
+
+        var owners = xmlService.loadCarOwnerDetails(ownersXmlPath);
+        var estimates = xmlService.loadRepairEstimates(estimatesXmlPath);
+
+
+        owners.forEach(o -> logger.info("Parsed from XML (Owner): {}", o));
+        estimates.forEach(e -> logger.info("Parsed from XML (Estimate): {}", e));
+
+
     }
 }

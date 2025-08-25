@@ -5,6 +5,7 @@ import org.example.car_service.dao.interfaces.InvoiceDao;
 import org.example.car_service.dao.interfaces.PartDao;
 import org.example.car_service.dao.interfaces.ServiceOrderDao;
 import org.example.car_service.dao.interfaces.ServiceTaskDao;
+import org.example.car_service.exceptions.DaoException;
 import org.example.car_service.model.Invoice;
 import org.example.car_service.model.ServiceOrder;
 
@@ -32,7 +33,7 @@ public class ServiceOrderService {
         this.connection = connection;
     }
 
-    public int openOrder(int carId, int mechanicId, Date orderDate) {
+    public int openOrder(int carId, int mechanicId, Date orderDate) throws DaoException {
         return orderDao.create(new ServiceOrder(0, carId, mechanicId, orderDate, "In Progress"));
     }
 
@@ -115,15 +116,15 @@ public class ServiceOrderService {
         return tasks.add(parts);
     }
 
-    public int generateInvoice(int serviceOrderId, Date invoiceDate) {
+    public int generateInvoice(int serviceOrderId, Date invoiceDate) throws DaoException {
         BigDecimal total = calculateTotal(serviceOrderId);
         return invoiceDao.create(new Invoice(0, serviceOrderId, total, invoiceDate));
     }
 
-    public void updateStatus(int serviceOrderId, String status) {
+    public void updateStatus(int serviceOrderId, String status) throws DaoException {
         ServiceOrder existing = orderDao.findById(serviceOrderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
-        orderDao.update(new ServiceOrder(existing.id(), existing.carId(), existing.mechanicId(),
-                existing.orderDate(), status));
+        orderDao.update(new ServiceOrder(existing.getId(), existing.getCarId(), existing.getMechanicId(),
+                existing.getOrderDate(), status));
     }
 }

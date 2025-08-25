@@ -1,6 +1,7 @@
 package org.example.car_service.service;
 
 import org.example.car_service.dao.interfaces.MechanicDao;
+import org.example.car_service.exceptions.DaoException;
 import org.example.car_service.model.Mechanic;
 
 import java.util.*;
@@ -12,11 +13,11 @@ public class MechanicService {
         this.mechanicDao = mechanicDao;
     }
 
-    public int addMechanic(String name, String phone) {
+    public int addMechanic(String name, String phone) throws DaoException {
         return mechanicDao.create(new Mechanic(0, name, phone));
     }
 
-    public List<Mechanic> listMechanics() { return mechanicDao.findAll(); }
+    public List<Mechanic> listMechanics() throws DaoException { return mechanicDao.findAll(); }
 
-    public Optional<Mechanic> getMechanic(int id) { return mechanicDao.findById(id); }
+    public Optional<Mechanic> getMechanic(int id) throws DaoException { return mechanicDao.findById(id); }
 }

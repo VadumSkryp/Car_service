@@ -1,6 +1,7 @@
 package org.example.car_service.service;
 
 import org.example.car_service.dao.interfaces.InvoiceDao;
+import org.example.car_service.exceptions.DaoException;
 import org.example.car_service.model.Invoice;
 
 import java.math.BigDecimal;
@@ -16,7 +17,7 @@ public class InvoiceService {
         this.connection = connection;
     }
 
-    public Optional<Invoice> getByOrder(int serviceOrderId) {
+    public Optional<Invoice> getByOrder(int serviceOrderId) throws DaoException {
         return invoiceDao.findByServiceOrderId(serviceOrderId);
     }
 

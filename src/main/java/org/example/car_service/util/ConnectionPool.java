@@ -1,4 +1,4 @@
-package org.example.car_service.conection;
+package org.example.car_service.util;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

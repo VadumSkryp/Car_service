@@ -1,0 +1,13 @@
+<!-- resources/xml/car_owner_details.xml -->
+<carOwnerDetailsList>
+    <carOwnerDetails>
+        <customerId>1</customerId>
+        <address>Kyiv, Shevchenko St. 12</address>
+        <birthDate>1985-06-15</birthDate>
+    </carOwnerDetails>
+    <carOwnerDetails>
+        <customerId>2</customerId>
+        <address>Lviv, Franko Ave. 33</address>
+        <birthDate>1990-11-25</birthDate>
+    </carOwnerDetails>
+</carOwnerDetailsList>
